@@ -7,7 +7,10 @@ from src.trainee_service import (
     get_specialization_report
 )
 
-from src.eligibility import check_eligibility
+from src.eligibility import (
+    check_eligibility,
+    calculate_rating
+)
 
 from src.validators import (
     validate_trainee_id,
@@ -17,6 +20,8 @@ from src.validators import (
     validate_score,
     validate_assignment_status
 )
+
+from src.logger import logger
 
 
 def display_menu():
@@ -33,12 +38,15 @@ def display_menu():
 
 
 def display_trainee(trainee):
+    rating = calculate_rating(trainee[4])
+
     print("\n--------------------------------------")
     print(f"Trainee ID: {trainee[0]}")
     print(f"Name: {trainee[1]}")
     print(f"Specialization: {trainee[2]}")
     print(f"Attendance: {trainee[3]}%")
     print(f"Score: {trainee[4]}")
+    print(f"Performance Rating: {rating}")
     print(f"Assignment Status: {trainee[5]}")
     print("--------------------------------------")
 
@@ -53,6 +61,7 @@ def get_valid_input(prompt, validator):
             return value
 
         print(f"Invalid input: {message}")
+        logger.warning("Invalid user input: %s", message)
 
 
 def get_trainee_input():
@@ -97,13 +106,14 @@ def get_trainee_input():
 
 
 def main():
+    logger.info("Application started")
+
     while True:
         display_menu()
 
         choice = input("Enter your choice: ").strip()
 
         try:
-            # 1. Add Trainee
             if choice == "1":
                 trainee_data = get_trainee_input()
 
@@ -111,7 +121,17 @@ def main():
 
                 print(message)
 
-            # 2. Search Trainee
+                if success:
+                    logger.info(
+                        "Trainee added successfully: %s",
+                        trainee_data[0]
+                    )
+                else:
+                    logger.warning(
+                        "Failed to add trainee: %s",
+                        trainee_data[0]
+                    )
+
             elif choice == "2":
                 search_value = input(
                     "Enter trainee ID or name to search: "
@@ -121,10 +141,17 @@ def main():
 
                 if trainee:
                     display_trainee(trainee)
+                    logger.info(
+                        "Trainee searched successfully: %s",
+                        search_value
+                    )
                 else:
                     print("Trainee not found.")
+                    logger.warning(
+                        "Trainee not found: %s",
+                        search_value
+                    )
 
-            # 3. Update Trainee
             elif choice == "3":
                 trainee_id = get_valid_input(
                     "Enter trainee ID to update: ",
@@ -167,7 +194,17 @@ def main():
 
                 print(message)
 
-            # 4. Display All Trainees
+                if success:
+                    logger.info(
+                        "Trainee updated successfully: %s",
+                        trainee_id
+                    )
+                else:
+                    logger.warning(
+                        "Failed to update trainee: %s",
+                        trainee_id
+                    )
+
             elif choice == "4":
                 trainees = get_all_trainees()
 
@@ -179,7 +216,11 @@ def main():
                     for trainee in trainees:
                         display_trainee(trainee)
 
-            # 5. Check Eligibility
+                    logger.info(
+                        "Displayed %s trainees",
+                        len(trainees)
+                    )
+
             elif choice == "5":
                 trainee_id = get_valid_input(
                     "Enter trainee ID to check eligibility: ",
@@ -190,6 +231,10 @@ def main():
 
                 if not trainee:
                     print("Trainee not found.")
+                    logger.warning(
+                        "Eligibility check failed; trainee not found: %s",
+                        trainee_id
+                    )
                     continue
 
                 eligible, reasons = check_eligibility(
@@ -203,6 +248,10 @@ def main():
 
                 if eligible:
                     print("Status: ELIGIBLE")
+                    logger.info(
+                        "Trainee eligible: %s",
+                        trainee_id
+                    )
                 else:
                     print("Status: NOT ELIGIBLE")
                     print("Reasons:")
@@ -210,7 +259,11 @@ def main():
                     for reason in reasons:
                         print(f"- {reason}")
 
-            # 6. Reports
+                    logger.info(
+                        "Trainee not eligible: %s",
+                        trainee_id
+                    )
+
             elif choice == "6":
                 report = get_report_data()
 
@@ -242,22 +295,22 @@ def main():
                 for row in specialization_report:
                     print(f"\nSpecialization: {row[0]}")
                     print(f"Trainees: {row[1]}")
-                    print(
-                        f"Average Attendance: {row[2]}%"
-                    )
-                    print(
-                        f"Average Score: {row[3]}"
-                    )
+                    print(f"Average Attendance: {row[2]}%")
+                    print(f"Average Score: {row[3]}")
 
-            # 7. Exit
+                logger.info("Reports generated successfully")
+
             elif choice == "7":
+                logger.info("Application closed by user")
                 print("Goodbye!")
                 break
 
             else:
                 print("Invalid choice. Please try again.")
+                logger.warning("Invalid menu choice: %s", choice)
 
         except Exception as error:
+            logger.exception("Application error")
             print(f"An error occurred: {error}")
             print("Please try again.")
 
