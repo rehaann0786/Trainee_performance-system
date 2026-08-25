@@ -149,3 +149,55 @@ def get_all_trainees():
     finally:
         cursor.close()
         connection.close()                
+
+def get_report_data():
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+
+        query = """
+            SELECT
+                COUNT(*) AS total_trainees,
+                ROUND(AVG(attendance), 2) AS average_attendance,
+                ROUND(AVG(score), 2) AS average_score,
+                COUNT(*) FILTER (
+                    WHERE attendance >= 80
+                    AND score >= 60
+                    AND assignment_status = 'Submitted'
+                ) AS eligible_trainees
+            FROM trainees;
+        """
+
+        cursor.execute(query)
+
+        return cursor.fetchone()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+def get_specialization_report():
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+
+        query = """
+            SELECT
+                specialization,
+                COUNT(*) AS trainee_count,
+                ROUND(AVG(attendance), 2) AS average_attendance,
+                ROUND(AVG(score), 2) AS average_score
+            FROM trainees
+            GROUP BY specialization
+            ORDER BY specialization;
+        """
+
+        cursor.execute(query)
+
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()                
