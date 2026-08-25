@@ -9,6 +9,15 @@ from src.trainee_service import (
 
 from src.eligibility import check_eligibility
 
+from src.validators import (
+    validate_trainee_id,
+    validate_name,
+    validate_specialization,
+    validate_attendance,
+    validate_score,
+    validate_assignment_status
+)
+
 
 def display_menu():
     print("\n======================================")
@@ -34,6 +43,59 @@ def display_trainee(trainee):
     print("--------------------------------------")
 
 
+def get_valid_input(prompt, validator):
+    while True:
+        value = input(prompt).strip()
+
+        valid, message = validator(value)
+
+        if valid:
+            return value
+
+        print(f"Invalid input: {message}")
+
+
+def get_trainee_input():
+    trainee_id = get_valid_input(
+        "Enter trainee ID: ",
+        validate_trainee_id
+    )
+
+    name = get_valid_input(
+        "Enter trainee name: ",
+        validate_name
+    )
+
+    specialization = get_valid_input(
+        "Enter specialization (Data Science/Data Engineering): ",
+        validate_specialization
+    )
+
+    attendance = get_valid_input(
+        "Enter attendance: ",
+        validate_attendance
+    )
+
+    score = get_valid_input(
+        "Enter score: ",
+        validate_score
+    )
+
+    assignment_status = get_valid_input(
+        "Enter assignment status (Submitted/Pending): ",
+        validate_assignment_status
+    )
+
+    return (
+        trainee_id,
+        name,
+        specialization,
+        attendance,
+        score,
+        assignment_status
+    )
+
+
 def main():
     while True:
         display_menu()
@@ -43,28 +105,9 @@ def main():
         try:
             # 1. Add Trainee
             if choice == "1":
-                trainee_id = input("Enter trainee ID: ").strip()
-                name = input("Enter trainee name: ").strip()
+                trainee_data = get_trainee_input()
 
-                specialization = input(
-                    "Enter specialization (Data Science/Data Engineering): "
-                ).strip()
-
-                attendance = input("Enter attendance: ").strip()
-                score = input("Enter score: ").strip()
-
-                assignment_status = input(
-                    "Enter assignment status (Submitted/Pending): "
-                ).strip()
-
-                success, message = add_trainee(
-                    trainee_id,
-                    name,
-                    specialization,
-                    attendance,
-                    score,
-                    assignment_status
-                )
+                success, message = add_trainee(*trainee_data)
 
                 print(message)
 
@@ -83,22 +126,35 @@ def main():
 
             # 3. Update Trainee
             elif choice == "3":
-                trainee_id = input(
-                    "Enter trainee ID to update: "
-                ).strip()
+                trainee_id = get_valid_input(
+                    "Enter trainee ID to update: ",
+                    validate_trainee_id
+                )
 
-                name = input("Enter trainee name: ").strip()
+                name = get_valid_input(
+                    "Enter trainee name: ",
+                    validate_name
+                )
 
-                specialization = input(
-                    "Enter specialization (Data Science/Data Engineering): "
-                ).strip()
+                specialization = get_valid_input(
+                    "Enter specialization (Data Science/Data Engineering): ",
+                    validate_specialization
+                )
 
-                attendance = input("Enter attendance: ").strip()
-                score = input("Enter score: ").strip()
+                attendance = get_valid_input(
+                    "Enter attendance: ",
+                    validate_attendance
+                )
 
-                assignment_status = input(
-                    "Enter assignment status (Submitted/Pending): "
-                ).strip()
+                score = get_valid_input(
+                    "Enter score: ",
+                    validate_score
+                )
+
+                assignment_status = get_valid_input(
+                    "Enter assignment status (Submitted/Pending): ",
+                    validate_assignment_status
+                )
 
                 success, message = update_trainee(
                     trainee_id,
@@ -125,9 +181,10 @@ def main():
 
             # 5. Check Eligibility
             elif choice == "5":
-                trainee_id = input(
-                    "Enter trainee ID to check eligibility: "
-                ).strip()
+                trainee_id = get_valid_input(
+                    "Enter trainee ID to check eligibility: ",
+                    validate_trainee_id
+                )
 
                 trainee = search_trainee(trainee_id)
 
